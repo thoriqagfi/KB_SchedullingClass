@@ -1,3 +1,8 @@
+import numpy.random as rnd
+import prettytable
+
+POPULATION_SIZE = 9
+
 class Data:
     ROOMS = [["R1", 25], ["R2", 45], ["R3", 35], ["R4", 50], ["R5", 30]]
     MEETING_TIMES = [["MT1", "MWF 09:00 - 10:00"], ["MT2", "MWF 10:00 - 11:00"], ["MT3", "TTH 09:00 - 10:30"], ["MT4", "TTH 10:30 - 12:00"]]
@@ -64,10 +69,61 @@ class Data:
     def getInstructors(self): return self._instructors
     def getDepts(self): return self._depts
     def getCourses(self): return self._courses
+
 class Schedule:
-    ''' '''
+    def __init__(self):
+        self._data = data
+        self._classes = []
+        self._numbOfConflicts = 0
+        self._fitness = -1
+        self._classNumb = 0
+    def getClasses(self):
+        self._isFitnessChanged = True
+        return self._classes
+    def getNumbOfConflicts(self): return self._numbOfConflicts
+    def getFitness(self):
+        if(self._isFitnessChanged == True):
+            self._fitness = self.calculateFitness()
+            self._isFitnessChanged = False
+    def initialize(self):
+        depts = self._data.getDepts()
+        for i in range(0, len(depts)):
+            courses = depts[i].getCourses()
+            for j in range(0, len(courses)):
+                newClass = Class(self._classNumb, depts[i], courses[j])
+                self._classNumb += 1
+                newClass.setMeetingTime(data.getMeetingTimes()[rnd.randrange(0, len(data.getMeetingTimes()))])
+                newClass.setRoom(data.getRooms()[rnd.randrange(0, len(data.getRooms()))])
+                newClass.setInstructor(courses[j].getInstructors()[rnd.randrange(0, len(courses[j].getInstructors()))])
+                self._classes.append(newClass)
+        return self
+    def calculateFitness(self):
+        self._numbOfConflicts = 0
+        classes = self.getClasses()
+        for i in range(0, len(classes)):
+            if (classes[i].getRoom().getSeatingCapacity() < classes[i].getCourse().getMaxNumberOfStudents()):
+                self._numbOfConflicts += 1
+            for j in range(0, len(classes)):
+                if (j >= i):
+                    if (classes[i].getMeetingTime() == classes[j].getMeetingTime() and classes[i].getId() != classes[j].getId()):
+                        if (classes[i].getRoom() == classes[j].getRoom()): self._numbOfConflicts += 1
+                        if (classes[i].getInstructor() == classes[j].getInstructor()):  self._numbOfConflicts += 1
+        return 1 / ((1.0 * self._numbOfConflicts + 1))
+    def __str__(self):
+        returnValue = ""
+        for i in range(0, len(self._classes) - 1):
+            returnValue += str(self._classes[i]) + ","
+        returnValue += str(self._classes[len(self._classes) - 1])
+        return returnValue
+
 class Population:
-    ''' '''
+    def __init__(self, size):
+        self._size = size
+        self._data = data
+        self._schedules = []
+        for i in range(0, size): self._schedules.append(Schedule().initialize())
+    def getSchedules(self): return self._schedules
+
 class GeneticAlgorithm:
     ''' '''
 class Course:
@@ -157,3 +213,71 @@ class Class:
     def __str__(self):
         return str(self._dept.name) + "," + str(self._course.number) + "," + \
                str(self._room.number) + "," + str(self._instructor.name) + "," + str(self._meetingTime.time)
+
+class DisplayMgr:
+    def printAvailableData(self):
+        print("> All Available Data")
+        self.printDept()
+        self.printCourse()
+        self.printRoom()
+        self.printInstructor()
+        self.printMeetingTimes()
+    def printDept(self):
+        depts = data.getDepts()
+        availableDeptsTable = prettytable.PrettyTable(['dept', 'courses'])
+        for i in range(0, len(depts)):
+            courses = depts.__getitem__(i).getCourses()
+            tempStr = "["
+            for j in range(0, len(courses) - 1):
+                tempStr += courses[j].__str__() + ", "
+            tempStr += courses[len(courses) - 1].__str__() + "]"
+            availableDeptsTable.add_row([depts.__getitem__(i).getName(), tempStr])
+        print(availableDeptsTable)
+    def printCourse(self):
+        availableCoursesTable = prettytable.PrettyTable(['id', 'course #', 'max # of students', 'instructor', 'meeting times', 'prerequisites'])
+        courses = data.getCourses()
+        for i in range(0, len(courses)):
+            availableCoursesTable.add_row([courses[i].getNumber(), courses[i].getName(), str(courses[i].getMaxNumberOfStudents()), courses[i].getInstructor(), str(courses[i].getNumberOfMeetings()), courses[i].getPrerequisites()])
+        print(availableCoursesTable)
+    def printRoom(self):
+        availableRoomsTable = prettytable.PrettyTable(['room #', 'max seating capacity'])
+        rooms = data.getRooms()
+        for i in range(0, len(rooms)):
+            availableRoomsTable.add_row([rooms[i].getNumber(), str(rooms[i].getSeatingCapacity())])
+        print(availableRoomsTable)
+    def printInstructor(self):
+        availableInstructorsTable = prettytable.PrettyTable(['id', 'instructor', 'department'])
+        instructors = data.getInstructors()
+        for i in range(0, len(instructors)):
+            availableInstructorsTable.add_row([instructors[i].getId(), instructors[i].getName(), instructors[i].getDepartment()])
+        print(availableInstructorsTable)
+    def printMeetingTimes(self):
+        availableMeetingTimeTable = prettytable.PrettyTable(['id', 'meeting times'])
+        meetingTimes = data.getMeetingTimes()
+        for i in range(0, len(meetingTimes)):
+            availableMeetingTimeTable.add_row([meetingTimes[i].getId(), meetingTimes[i].getTime()])
+        print(availableMeetingTimeTable)
+    def printGeneration(self, population):
+        table1 = prettytable.PrettyTable(['schedule #', 'fitness', '# of conflicts', 'classes [dept,class,room,instructor,meeting-time]'])
+        schedules = population.getSchedules()
+        for i in range(0, len(schedules)):
+            table1.add_row([str(i), round(schedules[i].getFitness(), 3), schedules[i].getNumberOfConflicts(), schedules[i].__str__()])
+        print(table1)
+    def printScheduleAsTable(self, schedule):
+        classes = schedule.getClasses()
+        table = prettytable.PrettyTable(['class #', 'dept', 'course (number, max # of students)', 'room (capacity)', 'instructor (id)', 'meeting-time (id)'])
+        for i in range(0, len(classes)):
+            table.add_row([str(i), classes[i].getDept().getName(), classes[i].getCourse().getName() + " (" + classes[i].getCourse().getNumber() + ", " + str(classes[i].getCourse().getMaxNumberOfStudents()) + ")", classes[i].getRoom().getNumber() + " (" + str(classes[i].getRoom().getSeatingCapacity()) + ")", classes[i].getInstructor().getName() + " (" + str(classes[i].getInstructor().getId()) + ")", classes[i].getMeetingTime().getTime() + " (" + str(classes[i].getMeetingTime().getId()) + ")"])
+        print(table)
+
+
+# * -----------------------------------------
+data = Data()
+displayMgr = DisplayMgr()
+displayMgr.printAvailableData()
+generationNumber = 0
+print("\n> Generation # " + str(generationNumber))
+population = Population(POPULATION_SIZE)
+population.getSchedules().sort(key=lambda x: x.getFitness(), reverse=True)
+displayMgr.printGeneration(population)
+displayMgr.printScheduleAsTable(population.getSchedules()[0])
