@@ -1,4 +1,4 @@
-import numpy.random as rnd
+import random as rnd
 import prettytable
 
 POPULATION_SIZE = 9
