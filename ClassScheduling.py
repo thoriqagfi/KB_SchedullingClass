@@ -2,6 +2,9 @@ import numpy.random as rnd
 import prettytable
 
 POPULATION_SIZE = 9
+NUMB_OF_ELITE_SCHEDULES = 1
+TOURNAMEN_SELECTION_SIZE = 3
+MUTATION_RATE = 0.1
 
 class Data:
     ROOMS = [["R1", 25], ["R2", 45], ["R3", 35], ["R4", 50], ["R5", 30]]
@@ -125,7 +128,56 @@ class Population:
     def getSchedules(self): return self._schedules
 
 class GeneticAlgorithm:
-    ''' '''
+    def evolve(self, population):
+        return self._mutate_population(self._crossover_population(population))
+    
+    def crossoverPopulation(self, pop):
+        crossoverPop = Population(0)
+        for i in range(NUMB_OF_ELITE_SCHEDULES):
+            crossoverPop.getSchedules().append(pop.getSchedules()[i])
+        
+        i = NUMB_OF_ELITE_SCHEDULES
+        
+        while i < POPULATION_SIZE:
+            schedule1 = self.selectTournamentPopulation(pop).getSchedules()[0]
+            schedule2 = self.selectTournamentPopulation(pop).getSchedules()[0]
+            crossoverPop.getSchedules().append(self.crossoverSchedule(schedule1, schedule2))
+            i += 1
+
+        return crossoverPop
+        
+    def mutatePopulation(self, population):
+        for i in range(NUMB_OF_ELITE_SCHEDULES, POPULATION_SIZE):
+            self.mutateSchedule(population.getSchedules()[i])
+            
+        return population
+        
+    def crossoverSchedule(self, schedule1, schedule2):
+        crossoverSchedule = Schedule().initialize()
+        for i in range(0, len(crossoverSchedule.getClasses())):
+            if (rnd.random() > 0.5): crossoverSchedule.getClasses()[i] = schedule1.getClasses()[i]
+            else: crossoverSchedule.getClasses()[i] = schedule2.getClasses()[i]
+        
+        return crossoverSchedule
+        
+    def mutateSchedule(self, mutateSchedule):
+        schedule = Schedule().initialize()
+        for i in range(0, len(mutateSchedule.getClasses())):
+            if (MUTATION_RATE > rnd.random()): mutateSchedule.getClasses()[i] = schedule.getClasses()[i]
+        
+        return mutateSchedule
+        
+    def selectTournamentPopulation(self, pop):
+        tournamentPop = Population(0)
+        i = 0
+        while i < TOURNAMEN_SELECTION_SIZE:
+            tournamentPop.getSchedules().append(pop.getSchedules()[rnd.randrange(0, POPULATION_SIZE)])
+            i += 1
+            
+        tournamentPop.getSchedules().sort(key=lambda x: x.getFitness(), reverse=True)
+
+        return tournamentPop
+    
 class Course:
     def __init__(self, number, name, instructor, maxNumberOfStudents, numberOfMeetings, prerequisites):
         self._number = number
