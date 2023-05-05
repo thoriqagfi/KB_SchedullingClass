@@ -9,7 +9,8 @@ MUTATION_RATE = 0.1
 class Data:
     ROOMS = [["R1", 25], ["R2", 45], ["R3", 35], ["R4", 50], ["R5", 30]]
     MEETING_TIMES = [["MT1", "MWF 09:00 - 10:00"], ["MT2", "MWF 10:00 - 11:00"], ["MT3", "TTH 09:00 - 10:30"], ["MT4", "TTH 10:30 - 12:00"]]
-    INSTRUCTORS = [["I1", "Dr James Web"], ["I2", "Mr Mike Brown"], ["I3", "Dr Steve Day"], ["I4", "Mrs Jane Doe"]]
+    INSTRUCTORS = [["I1", "Dr James Web", "Computer Science"], ["I2", "Mr Mike Brown", "Mechanical Engineering"], \
+                   ["I3", "Dr Steve Day", "Civil Engineering"], ["I4", "Mrs Jane Doe", "Electrical Engineering"]]
     DEPARTMENTS = [["D1", "Computer Science", [ "CSC 101", "CSC 103", "CSC 105", "CSC 203", "CSC 301", "CSC 399", "CSC 499"]],
                     ["D2", "Mechanical Engineering", ["ME 101", "ME 203", "ME 399", "ME 499"]],
                     ["D3", "Civil Engineering", ["CE 101", "CE 203", "CE 399", "CE 499"]],
@@ -40,25 +41,25 @@ class Data:
         for i in range(0, len(self.MEETING_TIMES)):
             self._meetingTimes.append(MeetingTime(self.MEETING_TIMES[i][0], self.MEETING_TIMES[i][1]))
         for i in range(0, len(self.INSTRUCTORS)):
-            self._instructors.append(Instructor(self.INSTRUCTORS[i][0], self.INSTRUCTORS[i][1]))
+            self._instructors.append(Instructor(self.INSTRUCTORS[i][0], self.INSTRUCTORS[i][1], self.INSTRUCTORS[i][2]))
         for i in range(0, len(self.DEPARTMENTS)):
             self._depts.append(Department(self.DEPARTMENTS[i][0], self.DEPARTMENTS[i][1], self.DEPARTMENTS[i][2]))
         for i in range(0, len(self.COURSES)):
-            self._courses.append(Course(self.COURSES[i][0], self.COURSES[i][1], self._findInstructor(self.COURSES[i][2]), self.COURSES[i][3], self.COURSES[i][4], self._findCourses(self.COURSES[i][5])))
+            self._courses.append(Course(self.COURSES[i][0], self.COURSES[i][1], self._findInstructor(self.COURSES[i][2]), self.COURSES[i][3], self.COURSES[i][4], self.COURSES[i][5]))
         deptIndex = 0
-        for i in range(0, len(self.COURSES)):
-            deptIndex = self._findDept(self.COURSES[i][0])
-            if (deptIndex != -1):
-                self._depts[deptIndex].addCourse(self._courses[len(self._courses) - 1])
+        # for i in range(0, len(self.COURSES)):
+        #     deptIndex = self._findDept(self.COURSES[i][0])
+        #     if (deptIndex != -1):
+        #         self._depts[i].addCourse(self.COURSES[i][0])
     def _findInstructor(self, instructorId):
         for i in range(0, len(self._instructors)):
             if (instructorId == self._instructors[i].getId()):
-                return self._instructors[i]
+                return self._instructors[i].getName()
         return None
     def _findDept(self, courseId):
-        for i in range(0, len(self._depts)):
-            if (courseId == self._depts[i].getId()):
-                return i
+        for i in range(0, len(self._depts)):              
+            if (courseId in self._depts[i].getCourses()):
+                return self._depts[i].getName()
         return -1
     def _findCourses(self, courseIds):
         courses = []
@@ -80,6 +81,7 @@ class Schedule:
         self._numbOfConflicts = 0
         self._fitness = -1
         self._classNumb = 0
+        self._isFitnessChanged = True
     def getClasses(self):
         self._isFitnessChanged = True
         return self._classes
@@ -97,7 +99,7 @@ class Schedule:
                 self._classNumb += 1
                 newClass.setMeetingTime(data.getMeetingTimes()[rnd.randrange(0, len(data.getMeetingTimes()))])
                 newClass.setRoom(data.getRooms()[rnd.randrange(0, len(data.getRooms()))])
-                newClass.setInstructor(courses[j].getInstructors()[rnd.randrange(0, len(courses[j].getInstructors()))])
+                # newClass.setInstructor(courses[j].getInstructors()[rnd.randrange(0, len(courses[j].getInstructors()))])
                 self._classes.append(newClass)
         return self
     def calculateFitness(self):
@@ -201,15 +203,18 @@ class Course:
     def __str__(self):
         return str(self._number) + "," + str(self._name) + "," + str(self._instructor) + "," + str(self._maxNumberOfStudents) + "," + str(self._numberOfMeetings) + "," + str(self._prerequisites)
 class Instructor:
-    def __init__(self, name, department):
+    def __init__(self, id, name, departement):
+        self._id = id
         self._name = name
-        self._department = department
+        self._departement = departement
+    def getId(self):
+        return self._id
     def getName(self):
         return self._name
     def getDepartment(self):
-        return self._department
+        return self._departement
     def __str__(self):
-        return str(self._name) + "," + str(self._department)
+        return str(self._name) + "," + str(self._name)
 class Room:
     def __init__(self, number, seatingCapacity):
         self._number = number
@@ -229,13 +234,18 @@ class MeetingTime:
     def getTime(self):
         return self._time
 class Department:
-    def __init__(self, name, courses):
+    def __init__(self, id, name, courses):
+        self._id = id
         self._name = name
         self._courses = courses
+    def getId(self):
+        return self._id
     def getName(self):
         return self._name
     def getCourses(self):
         return self._courses
+    def addCourse(self, course):
+        self._courses.append(course)
 class Class:
     def __init__(self, id, dept, course):
         self._id = id
@@ -289,7 +299,13 @@ class DisplayMgr:
         availableCoursesTable = prettytable.PrettyTable(['id', 'course #', 'max # of students', 'instructor', 'meeting times', 'prerequisites'])
         courses = data.getCourses()
         for i in range(0, len(courses)):
-            availableCoursesTable.add_row([courses[i].getNumber(), courses[i].getName(), str(courses[i].getMaxNumberOfStudents()), courses[i].getInstructor(), str(courses[i].getNumberOfMeetings()), courses[i].getPrerequisites()])
+            tempStr = ""
+            for j in range(0, len(courses[i].getPrerequisites())):
+                if j < len(courses[i].getPrerequisites()) - 1:
+                    tempStr += courses[i].getPrerequisites()[j] + ", "
+                else:
+                    tempStr += courses[i].getPrerequisites()[j]
+            availableCoursesTable.add_row([courses[i].getNumber(), courses[i].getName(), str(courses[i].getMaxNumberOfStudents()), courses[i].getInstructor(), str(courses[i].getNumberOfMeetings()), tempStr])
         print(availableCoursesTable)
     def printRoom(self):
         availableRoomsTable = prettytable.PrettyTable(['room #', 'max seating capacity'])
