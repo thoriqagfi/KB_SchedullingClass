@@ -1,351 +1,125 @@
-import random as rnd
-import prettytable
+from datetime import datetime
+import random
 
-POPULATION_SIZE = 9
-NUMB_OF_ELITE_SCHEDULES = 1
-TOURNAMEN_SELECTION_SIZE = 3
-MUTATION_RATE = 0.1
+# read the courses from the file
+with open("schedule.txt") as f:
+    courses = [line.strip().split(",") for line in f.readlines()[1:]]
 
-class Data:
-    ROOMS = [["R1", 25], ["R2", 45], ["R3", 35], ["R4", 50], ["R5", 30]]
-    MEETING_TIMES = [["MT1", "MWF 09:00 - 10:00"], ["MT2", "MWF 10:00 - 11:00"], ["MT3", "TTH 09:00 - 10:30"], ["MT4", "TTH 10:30 - 12:00"]]
-    INSTRUCTORS = [["I1", "Dr James Web", "Computer Science"], ["I2", "Mr Mike Brown", "Mechanical Engineering"], \
-                   ["I3", "Dr Steve Day", "Civil Engineering"], ["I4", "Mrs Jane Doe", "Electrical Engineering"]]
-    DEPARTMENTS = [["D1", "Computer Science", [ "CSC 101", "CSC 103", "CSC 105", "CSC 203", "CSC 301", "CSC 399", "CSC 499"]],
-                    ["D2", "Mechanical Engineering", ["ME 101", "ME 203", "ME 399", "ME 499"]],
-                    ["D3", "Civil Engineering", ["CE 101", "CE 203", "CE 399", "CE 499"]],
-                    ["D4", "Electrical Engineering", ["EE 101", "EE 203", "EE 399", "EE 499"]]]
-    COURSES = [["CSC 101", "Introduction to Computer Science", "I1", 25, 4, []],
-                ["CSC 103", "Web Programming", "I1", 25, 4, ["CSC 101"]],
-                ["CSC 105", "Advanced Programming", "I1", 25, 4, ["CSC 101"]],
-                ["CSC 203", "Data Structures", "I1", 25, 4, ["CSC 103", "CSC 105"]],
-                ["CSC 301", "Algorithms", "I1", 25, 4, ["CSC 203"]],
-                ["CSC 399", "Introduction to AI", "I1", 25, 4, ["CSC 203"]],
-                ["CSC 499", "Machine Learning", "I1", 25, 4, ["CSC 399"]],
-                ["ME 101", "Introduction to Mechanical Engineering", "I2", 45, 4, []],
-                ["ME 203", "Mechanical Engineering Design", "I2", 45, 4, ["ME 101"]],
-                ["ME 399", "Introduction to Robotics", "I2", 45, 4, ["ME 203"]],
-                ["ME 499", "Advanced Robotics", "I2", 45, 4, ["ME 399"]],
-                ["CE 101", "Introduction to Civil Engineering", "I3", 35, 4, []],
-                ["CE 203", "Civil Engineering Design", "I3", 35, 4, ["CE 101"]],
-                ["CE 399", "Introduction to Environmental Engineering", "I3", 35, 4, ["CE 203"]],
-                ["CE 499", "Advanced Environmental Engineering", "I3", 35, 4, ["CE 399"]],
-                ["EE 101", "Introduction to Electrical Engineering", "I4", 30, 4, []],
-                ["EE 203", "Electrical Engineering Design", "I4", 30, 4, ["EE 101"]],
-                ["EE 399", "Introduction to Power Systems", "I4", 30, 4, ["EE 203"]],
-                ["EE 499", "Advanced Power Systems", "I4", 30, 4, ["EE 399"]]]
-    def __init__(self):
-        self._rooms = []; self._meetingTimes = []; self._instructors = []; self._depts = []; self._courses = []
-        for i in range(0, len(self.ROOMS)):
-            self._rooms.append(Room(self.ROOMS[i][0], self.ROOMS[i][1]))
-        for i in range(0, len(self.MEETING_TIMES)):
-            self._meetingTimes.append(MeetingTime(self.MEETING_TIMES[i][0], self.MEETING_TIMES[i][1]))
-        for i in range(0, len(self.INSTRUCTORS)):
-            self._instructors.append(Instructor(self.INSTRUCTORS[i][0], self.INSTRUCTORS[i][1], self.INSTRUCTORS[i][2]))
-        for i in range(0, len(self.DEPARTMENTS)):
-            self._depts.append(Department(self.DEPARTMENTS[i][0], self.DEPARTMENTS[i][1], self.DEPARTMENTS[i][2]))
-        for i in range(0, len(self.COURSES)):
-            self._courses.append(Course(self.COURSES[i][0], self.COURSES[i][1], self._findInstructor(self.COURSES[i][2]), self.COURSES[i][3], self.COURSES[i][4], self.COURSES[i][5]))
-        deptIndex = 0
-        # for i in range(0, len(self.COURSES)):
-        #     deptIndex = self._findDept(self.COURSES[i][0])
-        #     if (deptIndex != -1):
-        #         self._depts[i].addCourse(self.COURSES[i][0])
-    def _findInstructor(self, instructorId):
-        for i in range(0, len(self._instructors)):
-            if (instructorId == self._instructors[i].getId()):
-                return self._instructors[i].getName()
-        return None
-    def _findDept(self, courseId):
-        for i in range(0, len(self._depts)):              
-            if (courseId in self._depts[i].getCourses()):
-                return self._depts[i].getName()
-        return -1
-    def _findCourses(self, courseIds):
-        courses = []
-        for i in range(0, len(courseIds)):
-            for j in range(0, len(self._courses)):
-                if (courseIds[i] == self._courses[j].getNumber()):
-                    courses.append(self._courses[j])
-        return courses
-    def getRooms(self): return self._rooms
-    def getMeetingTimes(self): return self._meetingTimes
-    def getInstructors(self): return self._instructors
-    def getDepts(self): return self._depts
-    def getCourses(self): return self._courses
+# create a list of course ids
+course_ids = list(set([course[0] for course in courses]))
+course_names = list(set([course[1] for course in courses]))
 
-class Schedule:
-    def __init__(self):
-        self._data = data
-        self._classes = []
-        self._numbOfConflicts = 0
-        self._fitness = -1
-        self._classNumb = 0
-        self._isFitnessChanged = True
-    def getClasses(self):
-        self._isFitnessChanged = True
-        return self._classes
-    def getNumbOfConflicts(self): return self._numbOfConflicts
-    def getFitness(self):
-        if(self._isFitnessChanged == True):
-            self._fitness = self.calculateFitness()
-            self._isFitnessChanged = False
-    def initialize(self):
-        depts = self._data.getDepts()
-        for i in range(0, len(depts)):
-            courses = depts[i].getCourses()
-            for j in range(0, len(courses)):
-                newClass = Class(self._classNumb, depts[i], courses[j])
-                self._classNumb += 1
-                newClass.setMeetingTime(data.getMeetingTimes()[rnd.randrange(0, len(data.getMeetingTimes()))])
-                newClass.setRoom(data.getRooms()[rnd.randrange(0, len(data.getRooms()))])
-                # newClass.setInstructor(courses[j].getInstructors()[rnd.randrange(0, len(courses[j].getInstructors()))])
-                self._classes.append(newClass)
-        return self
-    def calculateFitness(self):
-        self._numbOfConflicts = 0
-        classes = self.getClasses()
-        for i in range(0, len(classes)):
-            if (classes[i].getRoom().getSeatingCapacity() < classes[i].getCourse().getMaxNumberOfStudents()):
-                self._numbOfConflicts += 1
-            for j in range(0, len(classes)):
-                if (j >= i):
-                    if (classes[i].getMeetingTime() == classes[j].getMeetingTime() and classes[i].getId() != classes[j].getId()):
-                        if (classes[i].getRoom() == classes[j].getRoom()): self._numbOfConflicts += 1
-                        if (classes[i].getInstructor() == classes[j].getInstructor()):  self._numbOfConflicts += 1
-        return 1 / ((1.0 * self._numbOfConflicts + 1))
-    def __str__(self):
-        returnValue = ""
-        for i in range(0, len(self._classes) - 1):
-            returnValue += str(self._classes[i]) + ","
-        returnValue += str(self._classes[len(self._classes) - 1])
-        return returnValue
+# create a dictionary of course schedules
+schedules = {}
+for course_id in course_ids:
+    course_schedules = [course[2:] for course in courses if course[0] == course_id]
+    schedules[course_id] = course_schedules
 
-class Population:
-    def __init__(self, size):
-        self._size = size
-        self._data = data
-        self._schedules = []
-        for i in range(0, size): self._schedules.append(Schedule().initialize())
-    def getSchedules(self): return self._schedules
+# dict of courses_names : courses_ids
+courses_name_dict = {}
+for name in course_names:
+    for course in courses:
+        if course[1] == name:
+            courses_name_dict[name] = course[0]
+            break
 
-class GeneticAlgorithm:
-    def evolve(self, population):
-        return self._mutate_population(self._crossover_population(population))
-    
-    def crossoverPopulation(self, pop):
-        crossoverPop = Population(0)
-        for i in range(NUMB_OF_ELITE_SCHEDULES):
-            crossoverPop.getSchedules().append(pop.getSchedules()[i])
-        
-        i = NUMB_OF_ELITE_SCHEDULES
-        
-        while i < POPULATION_SIZE:
-            schedule1 = self.selectTournamentPopulation(pop).getSchedules()[0]
-            schedule2 = self.selectTournamentPopulation(pop).getSchedules()[0]
-            crossoverPop.getSchedules().append(self.crossoverSchedule(schedule1, schedule2))
-            i += 1
+def fitness_function(individual) -> int:
+    """
+    Calculate the fitness value of an individual, which represents the number of non-overlapping courses
+    """
+    overlapping, position = 0, 1
+    for i in individual.values():
+        day1, time1 = i[0], i[1]
+        restOfIndividual = list(individual.values())[position:]
+        for j in restOfIndividual:
+            day2, time2 = j[0], j[1]
+            if day1 == day2 and overlapping_hours(time1, time2):
+                overlapping += 1
 
-        return crossoverPop
-        
-    def mutatePopulation(self, population):
-        for i in range(NUMB_OF_ELITE_SCHEDULES, POPULATION_SIZE):
-            self.mutateSchedule(population.getSchedules()[i])
+        position += 1
             
-        return population
-        
-    def crossoverSchedule(self, schedule1, schedule2):
-        crossoverSchedule = Schedule().initialize()
-        for i in range(0, len(crossoverSchedule.getClasses())):
-            if (rnd.random() > 0.5): crossoverSchedule.getClasses()[i] = schedule1.getClasses()[i]
-            else: crossoverSchedule.getClasses()[i] = schedule2.getClasses()[i]
-        
-        return crossoverSchedule
-        
-    def mutateSchedule(self, mutateSchedule):
-        schedule = Schedule().initialize()
-        for i in range(0, len(mutateSchedule.getClasses())):
-            if (MUTATION_RATE > rnd.random()): mutateSchedule.getClasses()[i] = schedule.getClasses()[i]
-        
-        return mutateSchedule
-        
-    def selectTournamentPopulation(self, pop):
-        tournamentPop = Population(0)
-        i = 0
-        while i < TOURNAMEN_SELECTION_SIZE:
-            tournamentPop.getSchedules().append(pop.getSchedules()[rnd.randrange(0, POPULATION_SIZE)])
-            i += 1
-            
-        tournamentPop.getSchedules().sort(key=lambda x: x.getFitness(), reverse=True)
+    return len(individual) - overlapping
 
-        return tournamentPop
+def overlapping_hours(time1, time2) -> bool:
+    """
+    Check if two courses schedules overlap
+    """
+    start1, end1 = [datetime.strptime(str(h), "%H:%M").time() for h in time1.split("-")]
+    start2, end2 = [datetime.strptime(str(h), "%H:%M").time() for h in time2.split("-")]
+
+    return not (end1 <= start2 or end2 <= start1)
+
+def generate_individual(courseList) -> dict:
+    """
+    Generate a random individual
+    """
+    res = {}
+    for i in range(len(courseList)):
+        courseId = courses_name_dict[courseList[i]]
+        classesSchedule = random.sample(schedules[courseId], 1)[0]
+        res[courseId] = classesSchedule
+        
+    return res
+
+def mutate(individual) -> dict:
+    """
+    Mutate an individual by randomly replacing a course with another
+    """
+    course_to_replace = random.choice(list(individual.keys()))
+    new_course = random.choice(schedules[course_to_replace])
+    individual[course_to_replace] = new_course
+
+    return individual
+
+def crossover(parent1, parent2) -> dict:
+    """
+    Create a new individual by randomly selecting courses from the two parents
+    """
+    child = {}
+    for i in parent1.keys():
+        if random.random() < 0.5:
+            child[i] = parent1[i]
+        else:
+            child[i] = parent2[i]
     
-class Course:
-    def __init__(self, number, name, instructor, maxNumberOfStudents, numberOfMeetings, prerequisites):
-        self._number = number
-        self._name = name
-        self._instructor = instructor
-        self._maxNumberOfStudents = maxNumberOfStudents
-        self._numberOfMeetings = numberOfMeetings
-        self._prerequisites = prerequisites
-    def getNumber(self):
-        return self._number
-    def getName(self):
-        return self._name
-    def getInstructor(self):
-        return self._instructor
-    def getMaxNumberOfStudents(self):
-        return self._maxNumberOfStudents
-    def getNumberOfMeetings(self):
-        return self._numberOfMeetings
-    def getPrerequisites(self):
-        return self._prerequisites
-    def __str__(self):
-        return str(self._number) + "," + str(self._name) + "," + str(self._instructor) + "," + str(self._maxNumberOfStudents) + "," + str(self._numberOfMeetings) + "," + str(self._prerequisites)
-class Instructor:
-    def __init__(self, id, name, departement):
-        self._id = id
-        self._name = name
-        self._departement = departement
-    def getId(self):
-        return self._id
-    def getName(self):
-        return self._name
-    def getDepartment(self):
-        return self._departement
-    def __str__(self):
-        return str(self._name) + "," + str(self._name)
-class Room:
-    def __init__(self, number, seatingCapacity):
-        self._number = number
-        self._seatingCapacity = seatingCapacity
-    def getNumber(self):
-        return self._number
-    def getSeatingCapacity(self):
-        return self._seatingCapacity
-    def __str__(self):
-        return str(self._number) + "," + str(self._seatingCapacity)
-class MeetingTime:
-    def __init__(self, id, time):
-        self._id = id
-        self._time = time
-    def getId(self):
-        return self._id
-    def getTime(self):
-        return self._time
-class Department:
-    def __init__(self, id, name, courses):
-        self._id = id
-        self._name = name
-        self._courses = courses
-    def getId(self):
-        return self._id
-    def getName(self):
-        return self._name
-    def getCourses(self):
-        return self._courses
-    def addCourse(self, course):
-        self._courses.append(course)
-class Class:
-    def __init__(self, id, dept, course):
-        self._id = id
-        self._dept = dept
-        self._course = course
-        self._instructor = None
-        self._meetingTime = None
-        self._room = None
-    def getClassId(self):
-        return self._id
-    def getDept(self):
-        return self._dept
-    def getCourse(self):
-        return self._course
-    def getInstructor(self):
-        return self._instructor
-    def getMeetingTime(self):
-        return self._meetingTime
-    def getRoom(self):
-        return self._room
-    def setInstructor(self, instructor):
-        self._instructor = instructor
-    def setMeetingTime(self, meetingTime):
-        self._meetingTime = meetingTime
-    def setRoom(self, room):
-        self._room = room
-    def __str__(self):
-        return str(self._dept.name) + "," + str(self._course.number) + "," + \
-               str(self._room.number) + "," + str(self._instructor.name) + "," + str(self._meetingTime.time)
+    return child
 
-class DisplayMgr:
-    def printAvailableData(self):
-        print("> All Available Data")
-        self.printDept()
-        self.printCourse()
-        self.printRoom()
-        self.printInstructor()
-        self.printMeetingTimes()
-    def printDept(self):
-        depts = data.getDepts()
-        availableDeptsTable = prettytable.PrettyTable(['dept', 'courses'])
-        for i in range(0, len(depts)):
-            courses = depts.__getitem__(i).getCourses()
-            tempStr = "["
-            for j in range(0, len(courses) - 1):
-                tempStr += courses[j].__str__() + ", "
-            tempStr += courses[len(courses) - 1].__str__() + "]"
-            availableDeptsTable.add_row([depts.__getitem__(i).getName(), tempStr])
-        print(availableDeptsTable)
-    def printCourse(self):
-        availableCoursesTable = prettytable.PrettyTable(['id', 'course #', 'max # of students', 'instructor', 'meeting times', 'prerequisites'])
-        courses = data.getCourses()
-        for i in range(0, len(courses)):
-            tempStr = ""
-            for j in range(0, len(courses[i].getPrerequisites())):
-                if j < len(courses[i].getPrerequisites()) - 1:
-                    tempStr += courses[i].getPrerequisites()[j] + ", "
-                else:
-                    tempStr += courses[i].getPrerequisites()[j]
-            availableCoursesTable.add_row([courses[i].getNumber(), courses[i].getName(), str(courses[i].getMaxNumberOfStudents()), courses[i].getInstructor(), str(courses[i].getNumberOfMeetings()), tempStr])
-        print(availableCoursesTable)
-    def printRoom(self):
-        availableRoomsTable = prettytable.PrettyTable(['room #', 'max seating capacity'])
-        rooms = data.getRooms()
-        for i in range(0, len(rooms)):
-            availableRoomsTable.add_row([rooms[i].getNumber(), str(rooms[i].getSeatingCapacity())])
-        print(availableRoomsTable)
-    def printInstructor(self):
-        availableInstructorsTable = prettytable.PrettyTable(['id', 'instructor', 'department'])
-        instructors = data.getInstructors()
-        for i in range(0, len(instructors)):
-            availableInstructorsTable.add_row([instructors[i].getId(), instructors[i].getName(), instructors[i].getDepartment()])
-        print(availableInstructorsTable)
-    def printMeetingTimes(self):
-        availableMeetingTimeTable = prettytable.PrettyTable(['id', 'meeting times'])
-        meetingTimes = data.getMeetingTimes()
-        for i in range(0, len(meetingTimes)):
-            availableMeetingTimeTable.add_row([meetingTimes[i].getId(), meetingTimes[i].getTime()])
-        print(availableMeetingTimeTable)
-    def printGeneration(self, population):
-        table1 = prettytable.PrettyTable(['schedule #', 'fitness', '# of conflicts', 'classes [dept,class,room,instructor,meeting-time]'])
-        schedules = population.getSchedules()
-        for i in range(0, len(schedules)):
-            table1.add_row([str(i), round(schedules[i].getFitness(), 3), schedules[i].getNumberOfConflicts(), schedules[i].__str__()])
-        print(table1)
-    def printScheduleAsTable(self, schedule):
-        classes = schedule.getClasses()
-        table = prettytable.PrettyTable(['class #', 'dept', 'course (number, max # of students)', 'room (capacity)', 'instructor (id)', 'meeting-time (id)'])
-        for i in range(0, len(classes)):
-            table.add_row([str(i), classes[i].getDept().getName(), classes[i].getCourse().getName() + " (" + classes[i].getCourse().getNumber() + ", " + str(classes[i].getCourse().getMaxNumberOfStudents()) + ")", classes[i].getRoom().getNumber() + " (" + str(classes[i].getRoom().getSeatingCapacity()) + ")", classes[i].getInstructor().getName() + " (" + str(classes[i].getInstructor().getId()) + ")", classes[i].getMeetingTime().getTime() + " (" + str(classes[i].getMeetingTime().getId()) + ")"])
-        print(table)
+def select_parents(population):
+    """
+    Select two parents from the population using tournament selection
+    """
+    parent1 = tournament_selection(population)
+    parent2 = tournament_selection(population)
 
+    return parent1, parent2
 
-# * -----------------------------------------
-data = Data()
-displayMgr = DisplayMgr()
-displayMgr.printAvailableData()
-generationNumber = 0
-print("\n> Generation # " + str(generationNumber))
-population = Population(POPULATION_SIZE)
-population.getSchedules().sort(key=lambda x: x.getFitness(), reverse=True)
-displayMgr.printGeneration(population)
-displayMgr.printScheduleAsTable(population.getSchedules()[0])
+def tournament_selection(population, tournament_size=5) -> dict:
+    """
+    Select an individual from the population using tournament selection
+    """
+    tournament = random.sample(population, tournament_size)
+    tournament.sort(key=lambda x: fitness_function(x), reverse=True)
+
+    return tournament[0]
+
+def genetic_algorithm(courseList, population_size=100, generations=10, mutation_rate=0.5):
+    """
+    Run the genetic algorithm to find the best combination of courses
+    """
+    population = [generate_individual(courseList) for _ in range(population_size)]
+    for generation in range(generations):
+        population.sort(key=lambda x: fitness_function(x), reverse=True)
+        print("Generation:", generation, "Best Fitness:", fitness_function(population[0]), "Best Individual:", population[0])
+        new_population = [population[0]]
+        while len(new_population) < population_size:
+            parent1, parent2 = select_parents(population)
+            child = crossover(parent1, parent2)
+            if random.random() < mutation_rate:
+                child = mutate(child)
+            new_population.append(child)
+        population = new_population
+    population.sort(key=lambda x: fitness_function(x), reverse=True)
+    print("Final Population Best Fitness:", fitness_function(population[0]), "Final Population Best Individual:", population[0])
+
+List = ["Data Structures and Algorithms", "Artificial Intelligence"]
+genetic_algorithm(List)

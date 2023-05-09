@@ -1,0 +1,27 @@
+CSE101,Introduction to Computer Science,Monday,8:00-9:40
+CSE101,Introduction to Computer Science,Wednesday,8:00-9:40
+CSE101,Introduction to Computer Science,Friday,8:00-9:40
+CSE102,Data Structures and Algorithms,Monday,10:00-11:40
+CSE102,Data Structures and Algorithms,Wednesday,10:00-11:40
+CSE102,Data Structures and Algorithms,Friday,10:00-11:40
+CSE201,Operating Systems,Tuesday,8:00-09:40
+CSE201,Operating Systems,Tuesday,10:00-12:00
+CSE201,Operating Systems,Thursday,8:00-09:40
+CSE301,Database Systems,Monday,13:00-14:40
+CSE301,Database Systems,Wednesday,13:00-14:40
+CSE301,Database Systems,Friday,13:00-14:40
+CSE302,Computer Networks,Tuesday,10:00-11:40
+CSE302,Computer Networks,Thursday,10:00-11:40
+CSE303,Web Programming,Monday,15:00-16:40
+CSE303,Web Programming,Wednesday,15:00-16:40
+CSE304,Software Engineering,Wednesday,13:00-14:40
+CSE304,Software Engineering,Friday,13:00-14:40
+CSE401,Artificial Intelligence,Monday,10:00-11:40
+CSE401,Artificial Intelligence,Wednesday,10:00-11:40
+CSE401,Artificial Intelligence,Friday,10:00-11:40
+CSE402,Computer Graphics,Tuesday,13:00-14:40
+CSE402,Computer Graphics,Thursday,13:00-14:40
+CSE403,Parallel and Distributed Computing,Monday,8:00-9:40
+CSE403,Parallel and Distributed Computing,Wednesday,8:00-9:40
+CSE404,Data Mining and Knowledge Discovery,Tuesday,15:00-16:40
+CSE404,Data Mining and Knowledge Discovery,Thursday,15:00-16:40
