@@ -23,7 +23,27 @@ for name in course_names:
             courses_name_dict[name] = course[0]
             break
 
-def fitness_function(individual) -> int:
+def coursesOverlap(individual: dict) -> dict:
+    """
+    Check if the fittest population has overlap individual\n
+    This could happen if two or more classes has the same time for all the classes
+    """
+    res = {}
+    position = 1
+    for i in individual:
+        day1, time1 = individual[i][0], individual[i][1]
+        restOfIndividual = list(individual)[position:]
+        for j in restOfIndividual:
+            day2, time2 = individual[j][0], individual[j][1]
+            if day1 == day2 and overlapping_hours(time1, time2):
+                res[i] = individual[i]
+                res[j] = individual[j]
+        
+        position += 1
+
+    return res
+
+def fitness_function(individual: dict) -> int:
     """
     Calculate the fitness value of an individual, which represents the number of non-overlapping courses
     """
@@ -49,25 +69,26 @@ def overlapping_hours(time1, time2) -> bool:
 
     return not (end1 <= start2 or end2 <= start1)
 
-def generate_individual(courseList) -> dict:
+def generate_individual(courseList: list) -> dict:
     """
     Generate a random individual
     """
     res = {}
-    for i in range(len(courseList)):
-        courseId = courses_name_dict[courseList[i]]
+    for i in courseList:
+        courseId = courses_name_dict[i]
         classesSchedule = random.sample(schedules[courseId], 1)[0]
         res[courseId] = classesSchedule
         
     return res
 
-def mutate(individual) -> dict:
+def mutate(individual: dict, mutation_rate: int) -> dict:
     """
     Mutate an individual by randomly replacing a course with another
     """
-    course_to_replace = random.choice(list(individual.keys()))
-    new_course = random.choice(schedules[course_to_replace])
-    individual[course_to_replace] = new_course
+    for i in individual:
+        if random.random() < mutation_rate:
+            new_course = random.choice(schedules[i])
+            individual[i] = new_course
 
     return individual
 
@@ -102,11 +123,15 @@ def tournament_selection(population, tournament_size=5) -> dict:
 
     return tournament[0]
 
-def genetic_algorithm(courseList, population_size=100, generations=10, mutation_rate=0.5):
+def genetic_algorithm(courseList, population_size=10, generations=10, mutation_rate=0.5):
     """
     Run the genetic algorithm to find the best combination of courses
     """
     population = [generate_individual(courseList) for _ in range(population_size)]
+    for i in population:
+        print(i)
+        
+    option = []
     for generation in range(generations):
         population.sort(key=lambda x: fitness_function(x), reverse=True)
         print("Generation:", generation, "Best Fitness:", fitness_function(population[0]), "Best Individual:", population[0])
@@ -114,12 +139,21 @@ def genetic_algorithm(courseList, population_size=100, generations=10, mutation_
         while len(new_population) < population_size:
             parent1, parent2 = select_parents(population)
             child = crossover(parent1, parent2)
-            if random.random() < mutation_rate:
-                child = mutate(child)
+            mutate(child, mutation_rate)
             new_population.append(child)
         population = new_population
     population.sort(key=lambda x: fitness_function(x), reverse=True)
-    print("Final Population Best Fitness:", fitness_function(population[0]), "Final Population Best Individual:", population[0])
+    for i in population:
+        if fitness_function(i) == len(courseList) and i not in option:
+            option.append(i)
+    if fitness_function(population[0]) == len(courseList):
+        print("Final Population Best Fitness:", fitness_function(population[0]), "\nFinal Population Best Individual:", population[0])
+    else:
+        print("There is one or more class that overlap:")
+        print(coursesOverlap(population[0]))
+# 
+    for i in option:
+        print(i)
 
-List = ["Data Structures and Algorithms", "Artificial Intelligence"]
+List = ["Internet Security", "Computer Graphics", "Database Systems"]
 genetic_algorithm(List)

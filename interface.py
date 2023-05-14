@@ -11,10 +11,15 @@ def calculate(*args):
 root = Tk()
 root.title("Genetic Algorithm Scheduling")
 
-root.resizable(False, False)
+var2 = IntVar()
+var1 = IntVar()
 
-mainframe = ttk.Frame(root, padding="3 3 12 12")
+root.resizable(False, False)
+root.geometry("750x500")
+
+mainframe = ttk.Frame(root)
 mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 

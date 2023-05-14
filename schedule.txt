@@ -25,3 +25,5 @@ CSE403,Parallel and Distributed Computing,Monday,8:00-9:40
 CSE403,Parallel and Distributed Computing,Wednesday,8:00-9:40
 CSE404,Data Mining and Knowledge Discovery,Tuesday,15:00-16:40
 CSE404,Data Mining and Knowledge Discovery,Thursday,15:00-16:40
+CSE405,Internet Security,Tuesday,13:00-14:40
+CSE405,Internet Security,Thursday,13:00-14:40
