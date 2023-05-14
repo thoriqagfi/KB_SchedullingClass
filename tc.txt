@@ -1,0 +1,59 @@
+## TC Schedule
+## 3rd Semester
+IF184301,Object-Oriented Programming,Monday,13:00-15:00
+IF184301,Object-Oriented Programming,Tuesday,15:00-17:00
+IF184302,Linear Algebra,Tuesday,07:00-09:00
+IF184303,Numerical Computation
+IF184304,Discrete Mathematics,Tuesday,07:00-09:00
+IF184304,Discrete Mathematics,Tuesday,13:00-15:00
+IF184305,Computer Organization,Monday,15:00-17:00
+IF184305,Computer Organization,Tuesday,10:00-12:00
+IF184305,Computer Organization,Tuesday,15:00-17:00
+IW184301,Database System,Monday,07:00-09:00
+IW184301,Database System,Monday,10:00-12:00
+IW184301,Database System,Tuesday,07:00-09:00
+
+## 4th Semester
+IF184401,Design and Analysis Algorithms
+IF184402,Operating System
+IF184403,Artificial Intelligence
+IF184404,Database Management
+IF184405,Probability and Statistic
+IF184406,Analysis and Design of Information Systems
+
+## 5th Semester
+IF184501,Software Design,Monday,10:00-12:00
+IF184501,Software Design,Tuesday,13:00-15:00
+IF184502,Computer Graphics,Monday,10:00-12:00
+IF184502,Computer Graphics,Monday,13:00-15:00
+IF184502,Computer Graphics,Tuesday,07:00-09:00
+IF184503,Computational Intelligence,Monday,13:00-15:00
+IF184503,Computational Intelligence,Tuesday,10:00-12:00
+IF184503,Computational Intelligence,Tuesday,13:00-15:00
+IF184504,Web Programming,Tuesday,13:00-15:00
+IF184505,Computer Networks,Monday,10:00-12:00
+IF184505,Computer Networks,Monday,15:00-17:00
+IF184505,Computer Networks,Tuesday,07:00-09:00
+IF184505,Computer Networks,Tuesday,10:00-12:00
+IF184506,Software Project Management,Monday,10:00-12:00
+IF184506,Software Project Management,Tuesday,07:00-09:00
+IF184506,Software Project Management,Tuesday,10:00-12:00
+IF184506,Software Project Management,Tuesday,13:00-15:00
+
+## 6th Semester
+IF184601,Human and Computer Interaction
+IF184602,Network Programming
+IF184603,Requirement Engineering
+IF184604,Graph Theory and Automata
+IF184605,Framework-based Programming
+
+## 7th Semester
+UG184915,Technopreneurship
+IF184701,Information and Network Security,Monday,07:00-09:00
+IF184701,Information and Network Security,Tuesday,10:00-12:00
+IF184702,Undergraduate Pre-Thesis
+
+## 8th Semester
+IF184801,Internship
+IF184802,Undergraduate Thesis
+UG184916,Scientific and Application Technology
