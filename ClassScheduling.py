@@ -22,6 +22,13 @@ for name in course_names:
         if course[1] == name:
             courses_name_dict[name] = course[0]
             break
+        
+courses_id_dict = {}
+for id in course_ids:
+    for course in courses:
+        if course[0] == id:
+            courses_id_dict[id] = course[1]
+            break
 
 def coursesOverlap(individual: dict) -> dict:
     """
@@ -128,9 +135,7 @@ def genetic_algorithm(courseList, population_size=10, generations=10, mutation_r
     Run the genetic algorithm to find the best combination of courses
     """
     population = [generate_individual(courseList) for _ in range(population_size)]
-    for i in population:
-        print(i)
-        
+
     option = []
     for generation in range(generations):
         population.sort(key=lambda x: fitness_function(x), reverse=True)
@@ -151,9 +156,12 @@ def genetic_algorithm(courseList, population_size=10, generations=10, mutation_r
     else:
         print("There is one or more class that overlap:")
         print(coursesOverlap(population[0]))
-# 
-    for i in option:
-        print(i)
 
-List = ["Internet Security", "Computer Graphics", "Database Systems"]
-genetic_algorithm(List)
+    # for i in option:
+    #     print(i)
+    return option
+
+LIST = ["Artificial Intelligence", "Computer Graphics", "Operating Systems"]
+res = genetic_algorithm(LIST)
+for classes in res[1]:
+    print(classes, res[1][classes][0], res[1][classes][1])
