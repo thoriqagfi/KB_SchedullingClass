@@ -57,7 +57,10 @@ class CourseSchedulerApp:
             self.tree.insert("", "end", text=course, values=(course_name, day, time))
 
     def next_page(self):
-        self.page += 1
+        if self.page < len(self.result) - 1:
+            self.page += 1
+        else:
+            self.page = 0
         self.insert_to_table()
 
     def start_genetic_algorithm(self):
