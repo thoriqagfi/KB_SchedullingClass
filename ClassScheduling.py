@@ -33,8 +33,8 @@ for id in course_ids:
 
 def coursesOverlap(individual: dict) -> dict:
     """
-    Check if the fittest population has overlap individual\n
-    This could happen if two or more classes has the same time for all the classes
+    Memeriksa apakah ada mata kuliah yang bertabrakan\n
+    Fungsi ini akan dipanggil jika individual terbaik memiliki jadwal yang bertabrakan
     """
     res = {}
     position = 1
@@ -53,7 +53,8 @@ def coursesOverlap(individual: dict) -> dict:
 
 def fitness_function(individual: dict) -> int:
     """
-    Calculate the fitness value of an individual, which represents the number of non-overlapping courses
+    Mengkalkulasi nilai fitness function dari sebuah individual\n
+    Fitness function yang digunakan adalah banyak mata kuliah yang bertabrakan dalam sebuah individual
     """
     overlapping, position = 0, 1
     for i in individual.values():
@@ -70,7 +71,7 @@ def fitness_function(individual: dict) -> int:
 
 def overlapping_hours(time1, time2) -> bool:
     """
-    Check if two courses schedules overlap
+    Memeriksa jika dua kelas bertabrakan waktu
     """
     start1, end1 = [datetime.strptime(str(h), "%H:%M").time() for h in time1.split("-")]
     start2, end2 = [datetime.strptime(str(h), "%H:%M").time() for h in time2.split("-")]
@@ -79,7 +80,8 @@ def overlapping_hours(time1, time2) -> bool:
 
 def generate_individual(courseList: list) -> dict:
     """
-    Generate a random individual
+    Menghasilkan populasi awal\n
+    Fungsi ini dipanggil di awal Genetic Algorithm dijalankan
     """
     res = {}
     for i in courseList:
@@ -91,7 +93,9 @@ def generate_individual(courseList: list) -> dict:
 
 def mutate(individual: dict, mutation_rate: int) -> dict:
     """
-    Mutate an individual by randomly replacing a course with another
+    Melakukan mutasi pada semua DNA individual\n
+    Melakukan random.random() untuk menghasilkan nilai random
+    dan jika nilai random.random() < mutation_rate, maka DNA tersebut dilakukan mutasi.
     """
     for i in individual:
         if random.random() < mutation_rate:
@@ -102,7 +106,10 @@ def mutate(individual: dict, mutation_rate: int) -> dict:
 
 def crossover(parent1, parent2) -> dict:
     """
-    Create a new individual by randomly selecting courses from the two parents
+    Menghasilkan anak baru dari parent1 dan parent2\n
+    Sama seperti mutate(), dilakukan random.random(), jika nilai
+    random.random() kurang dari 0.5, maka DNA dari parent1 akan diambil dan sebaliknya
+    jika random.random() lebih dari 0.5
     """
     child = {}
     for i in parent1.keys():
@@ -115,7 +122,7 @@ def crossover(parent1, parent2) -> dict:
 
 def select_parents(population):
     """
-    Select two parents from the population using tournament selection
+    Mengambil parent dari sebuah populasi menggunakan function tournamen_selection()
     """
     parent1 = tournament_selection(population)
     parent2 = tournament_selection(population)
@@ -124,7 +131,9 @@ def select_parents(population):
 
 def tournament_selection(population, tournament_size=5) -> dict:
     """
-    Select an individual from the population using tournament selection
+    Mengambil individual sebanyak tournament_size dari sebuah population\n
+    Dari individual yang diambil dilakukan kembali fitness function
+    kemudian individual dengan nilai fitness tertinggi akan diambil
     """
     tournament = random.sample(population, tournament_size)
     tournament.sort(key=lambda x: fitness_function(x), reverse=True)
@@ -133,7 +142,7 @@ def tournament_selection(population, tournament_size=5) -> dict:
 
 def genetic_algorithm(courseList, population_size=20, generations=20, mutation_rate=0.5) -> None:
     """
-    Run the genetic algorithm to find the best combination of courses
+    Menjalankan Genetic Algorithm
     """
     population = [generate_individual(courseList) for _ in range(population_size)]
 
