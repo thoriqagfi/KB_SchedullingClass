@@ -2,7 +2,7 @@ from datetime import datetime
 import random
 
 # read the courses from the file
-with open("schedule.txt") as f:
+with open("tc.txt") as f:
     courses = [line.strip().split(",") for line in f.readlines()[1:]]
 
 # create a list of course ids
@@ -23,6 +23,7 @@ for name in course_names:
             courses_name_dict[name] = course[0]
             break
         
+# dict of course_ids : courses_names
 courses_id_dict = {}
 for id in course_ids:
     for course in courses:
@@ -62,7 +63,7 @@ def fitness_function(individual: dict) -> int:
             day2, time2 = j[0], j[1]
             if day1 == day2 and overlapping_hours(time1, time2):
                 overlapping += 1
-
+            
         position += 1
             
     return len(individual) - overlapping
@@ -130,7 +131,7 @@ def tournament_selection(population, tournament_size=5) -> dict:
 
     return tournament[0]
 
-def genetic_algorithm(courseList, population_size=10, generations=10, mutation_rate=0.5):
+def genetic_algorithm(courseList, population_size=20, generations=20, mutation_rate=0.5) -> None:
     """
     Run the genetic algorithm to find the best combination of courses
     """
@@ -157,11 +158,4 @@ def genetic_algorithm(courseList, population_size=10, generations=10, mutation_r
         print("There is one or more class that overlap:")
         print(coursesOverlap(population[0]))
 
-    # for i in option:
-    #     print(i)
     return option
-
-LIST = ["Artificial Intelligence", "Computer Graphics", "Operating Systems"]
-res = genetic_algorithm(LIST)
-for classes in res[1]:
-    print(classes, res[1][classes][0], res[1][classes][1])
