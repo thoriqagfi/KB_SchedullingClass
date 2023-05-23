@@ -42,6 +42,9 @@ class CourseSchedulerApp:
         self.next_button = tk.Button(root, text="Next", command=self.next_page)
         self.next_button.pack()
 
+        self.page_indicator = tk.Label(root, text=str(self.page))
+        self.page_indicator.pack()
+
     def insert_to_table(self):
         '''
         Metode untuk memasukkan hasil Genetic Algorithm ke dalam
@@ -66,6 +69,7 @@ class CourseSchedulerApp:
             self.page += 1
         else:
             self.page = 0
+        self.page_indicator["text"] = self.page
         self.insert_to_table()
 
     def start_genetic_algorithm(self):
