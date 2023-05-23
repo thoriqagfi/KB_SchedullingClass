@@ -16,6 +16,25 @@ class CourseSchedulerApp:
         self.course_list = tk.Listbox(root, selectmode=tk.MULTIPLE)
         self.course_list.pack()
 
+        # Mengatur ukuran course_list agar tidak terlalu besar
+        self.course_list.config(width=40, height=20)
+
+        # Mengatur height course_list agar sesuai dengan jumlah course
+        self.course_list.config(height=self.course_list.size())
+
+        # Styling pada GUI
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
+        self.style.configure("Treeview",
+                                background="white",
+                                foreground="black",
+                                rowheight=25,
+                                fieldbackground="white")
+        self.style.map("Treeview", background=[("selected", "blue")])  
+
+        self.style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
+
+
         # dictionary courses dari ClassScheduling.py
         self.courses_id_dict = courses_id_dict
 
@@ -38,9 +57,28 @@ class CourseSchedulerApp:
         self.tree.heading("day", text="Day")
         self.tree.heading("time", text="Time")
         self.tree.pack()
+        self.tree.column("#0", anchor=tk.CENTER)
+        self.tree.column("course name", anchor=tk.CENTER)
+        self.tree.column("day", anchor=tk.CENTER)
+        self.tree.column("time", anchor=tk.CENTER)
+        self.tree.column("#0", width=200)
+        self.tree.column("course name", width=400)
+        self.tree.column("day", width=200)
+        self.tree.column("time", width=200)
+
 
         self.next_button = tk.Button(root, text="Next", command=self.next_page)
         self.next_button.pack()
+
+        # Menampilkan nomor halaman
+        self.page_label = tk.Label(root, text="Page " + str(self.page + 1))
+        self.page_label.pack()
+
+        self.next_button.bind("<Button-1>", lambda event: self.page_label.config(text="Page " + str(self.page + 1)))
+
+        self.page_label.place(x=530, y=504)
+
+
 
     def insert_to_table(self):
         '''
@@ -50,12 +88,17 @@ class CourseSchedulerApp:
         for i in self.tree.get_children():
             self.tree.delete(i)
 
+    
+        self.result[self.page] = dict(sorted(self.result[self.page].items(), key=lambda item: (item[1][0], item[1][1]))) 
+       
         for data in self.result[self.page]:
             course = data
             course_name = self.courses_id_dict[data]
             day = self.result[self.page][data][0]
             time = self.result[self.page][data][1]
-            self.tree.insert("", "end", text=course, values=(course_name, day, time))
+            # Memasukkan data ke dalam tabel urut sesuai hari dan waktu
+            self.tree.insert("", tk.END, text=course, values=(course_name, day, time))
+
 
     def next_page(self):
         '''
