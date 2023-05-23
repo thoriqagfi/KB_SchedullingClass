@@ -39,7 +39,7 @@ class CourseSchedulerApp:
         self.courses_id_dict = courses_id_dict
 
         # Penunjuk halaman pada saat output hasil GA
-        self.page = 0
+        self.page = 1
 
         # Memasukkan hasil dictionary ke list
         # yang akan dipilih oleh user
@@ -71,7 +71,7 @@ class CourseSchedulerApp:
         self.next_button.pack()
 
         # Menampilkan nomor halaman
-        self.page_label = tk.Label(root, text="Page " + str(self.page + 1))
+        self.page_label = tk.Label(root, text="Page " + str(self.page))
         self.page_label.pack()
 
         self.next_button.bind("<Button-1>", lambda event: self.page_label.config(text="Page " + str(self.page + 1)))
